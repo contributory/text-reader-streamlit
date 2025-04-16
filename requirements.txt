@@ -1,0 +1,8 @@
+streamlit
+boto3
+PyMuPDF
+pandas
+python-docx
+Werkzeug
+chardet
+openpyxl
