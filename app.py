@@ -1,12 +1,12 @@
-import streamlit as st
-import boto3
-from werkzeug.utils import secure_filename
 import mimetypes
 from io import BytesIO
-import fitz  # PyMuPDF
-from docx import Document
+
+import boto3
+import fitz
 import pandas as pd
-import csv
+import streamlit as st
+from docx import Document
+from werkzeug.utils import secure_filename
 
 # S3 config
 s3 = boto3.client(
@@ -53,20 +53,35 @@ selected_file = st.sidebar.selectbox(
 if selected_file:
     mime_type, _ = mimetypes.guess_type(selected_file)
     obj = s3.get_object(Bucket=BUCKET_NAME, Key=selected_file)
-    file_bytes = obj["Body"].read()
+    file_bytes = obj["Body"].read().decode("utf-8")
     file_stream = BytesIO(file_bytes)
 
     if mime_type:
         if mime_type == "application/pdf":
             doc = fitz.open(stream=file_bytes, filetype="pdf")
+            markdown_text = ""
             for page in doc:
-                text = page.get_text()
+                text = page.get_text("text")  # lấy dạng văn bản thô
                 if text.strip():
-                    st.markdown(text)
+                    # Làm sạch và định dạng sơ bộ cho markdown
+                    lines = text.splitlines()
+                    for line in lines:
+                        if line.strip():
+                            # Đoạn văn bản dài thì hiển thị như đoạn markdown thường
+                            if len(line.strip()) > 80:
+                                markdown_text += f"\n\n{line.strip()}"
+                            else:
+                                markdown_text += f"\n\n**{line.strip()}**"
                 else:
                     img = page.get_pixmap(dpi=150)
                     img_data = BytesIO(img.tobytes("png"))
                     st.image(img_data)
+
+            if markdown_text.strip():
+                st.markdown(markdown_text)
+            else:
+                st.info("❗ Không trích xuất được nội dung văn bản từ PDF.")
+
         elif mime_type.startswith("image/"):
             st.image(file_stream, use_column_width=True)
         elif mime_type == "text/plain":
@@ -96,4 +111,4 @@ if selected_file:
     else:
         st.warning("❓ Không xác định được định dạng file.")
 else:
-    st.info("📭 Chưa có tài liệu nào được chọn.")
+    st.info("📭 Chưa có tài
