@@ -53,7 +53,7 @@ selected_file = st.sidebar.selectbox(
 if selected_file:
     mime_type, _ = mimetypes.guess_type(selected_file)
     obj = s3.get_object(Bucket=BUCKET_NAME, Key=selected_file)
-    file_bytes = obj["Body"].read().decode("utf-8")
+    file_bytes = obj["Body"].read()
     file_stream = BytesIO(file_bytes)
 
     if mime_type:
