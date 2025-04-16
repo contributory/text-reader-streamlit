@@ -111,4 +111,4 @@ if selected_file:
     else:
         st.warning("❓ Không xác định được định dạng file.")
 else:
-    st.info("📭 Chưa có tài
+    st.info("📭 Chưa có tài liệu.")
